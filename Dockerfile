@@ -192,10 +192,9 @@ ENV OMNIROUTE_MITM_STUB=1
 # on V8, so keep the ceiling. NODE_OPTIONS propagates to the spawned `next build`
 # child (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env).
 # Build-only; the runtime heap is set separately on the runner stage
-# (OMNIROUTE_MEMORY_MB). Override: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
-# Default raised 4096 → 6144 (#10060): the Next 16 production pass on a codebase
-# this size intermittently OOMs a build worker at 4 GB on memory-tight hosts.
-ARG OMNIROUTE_BUILD_MEMORY_MB=6144
+# (OMNIROUTE_MEMORY_MB). The default is conservative for 8 GB builders; override
+# with `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144` on larger builders.
+ARG OMNIROUTE_BUILD_MEMORY_MB=3072
 ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 
 # Cap Next.js build worker pools. Next 16 defaults to `os.cpus().length - 1`
@@ -206,6 +205,7 @@ ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 # CIRCLE_NODE_TOTAL (workers = N-1). (#10060)
 #
 # Lowered 8 → 3 (7 workers → 2) in #11419, then 3 → 2 (2 workers → 1) in #7518.
+# Render's 8 GB build environment needs the single-worker setting below.
 # Every page-data worker inherits NODE_OPTIONS above, so the ceiling is per
 # PROCESS, not per build: 7 workers on a 16 GB GitHub runner (ubuntu-24.04 /
 # ubuntu-24.04-arm, 4 vCPU) exhausted the host and buildkit failed the whole
@@ -227,7 +227,7 @@ ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 # the measured figure and fails if either knob is raised past what a 16 GB
 # runner holds. Override for a big builder: `--build-arg
 # OMNIROUTE_BUILD_WORKERS=8`.
-ARG OMNIROUTE_BUILD_WORKERS=2
+ARG OMNIROUTE_BUILD_WORKERS=1
 ENV CIRCLE_NODE_TOTAL=${OMNIROUTE_BUILD_WORKERS}
 
 COPY . ./

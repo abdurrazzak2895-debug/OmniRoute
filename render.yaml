@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: omniroute
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/health/ping
+    maxShutdownDelaySeconds: 60
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: HOSTNAME
+        value: 0.0.0.0
+      - key: DATA_DIR
+        value: /app/data
+      - key: REQUIRE_API_KEY
+        value: "true"
+      - key: INITIAL_PASSWORD
+        sync: false
+      - key: OMNIROUTE_MEMORY_MB
+        value: "1024"
+    disk:
+      name: omniroute-data
+      mountPath: /app/data
+      sizeGB: 10
