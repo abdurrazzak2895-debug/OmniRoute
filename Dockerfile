@@ -127,8 +127,9 @@ RUN test -f package-lock.json \
 # node-gyp comes from npm's own bundled copy (deterministic, already in the image)
 # instead of `npx --yes`, which would install an arbitrary registry version
 # on-demand and run its lifecycle scripts (Sonar docker:S6505).
-RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
-  npm ci --include=optional --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
+RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm,sharing=locked \
+  --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-node-gyp-cache,target=/root/.cache/node-gyp,sharing=locked \
+  npm ci --include=optional --no-audit --no-fund --prefer-offline --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
       && if [ -n "${NODE_DIST_URL}" ]; then export NODEJS_ORG_MIRROR="${NODE_DIST_URL}"; fi \
       && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
